@@ -54,11 +54,19 @@ export default function Home() {
         PROGRAM_ID
       );
 
-      const groupData = await program.account.groupState.fetch(groupStatePDA);
+      // Adicionamos o "as any" aqui para o TypeScript parar de reclamar
+      const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
+      
+      // Agora ele aceita o toNumber() sem chiar
       const pool = groupData.totalAmount ? groupData.totalAmount.toNumber() : 
                    (groupData.totalPool ? groupData.totalPool.toNumber() : 0);
                    
+      const highest = groupData.highestBid ? groupData.highestBid.toNumber() : 0;
+
       setRealTotalPool(pool);
+      // Se você tiver o estado de highest bid criado:
+      // setRealHighestBid(highest); 
+
     } catch (error) {
       console.log("Cofre ainda não inicializado ou sem dados.");
     } finally {
