@@ -183,7 +183,7 @@ export default function Home() {
         <header className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-4 max-w-5xl w-full mx-auto gap-4">
           <div className="cursor-pointer transition-transform hover:scale-105" onClick={() => setActiveTab("dashboard")}>
             {/* Logo Aumentada e sem texto extra */}
-            <img src="/logo.png" alt="RoundFi Logo" className="h-12 w-auto object-contain" />
+            <img src="/logo.png" alt="RoundFi Logo" className="h-40 w-auto object-contain" />
           </div>
           
           <nav className="flex gap-6 bg-[#1C2541] px-6 py-2 rounded-full border border-gray-800">
