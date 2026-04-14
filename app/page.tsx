@@ -61,7 +61,7 @@ export default function Home() {
       // Lendo os dados do contrato
       const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
       
-      // Aqui está a mágica: usando potAmount e highestBidAmount como está no seu IDL!
+      // Usando potAmount e highestBidAmount como está no IDL
       const pool = groupData.potAmount ? groupData.potAmount.toNumber() : 0;
       const highest = groupData.highestBidAmount ? groupData.highestBidAmount.toNumber() : 0;
 
