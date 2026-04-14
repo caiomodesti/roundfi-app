@@ -560,7 +560,7 @@ export default function Home() {
         <div className="max-w-7xl w-full mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-10 md:mb-20 text-center md:text-left">
           <div className="col-span-1 md:col-span-2 flex flex-col items-center md:items-start">
             <div className="mb-4 md:mb-6">
-              <img src="/logo.png" alt="RoundFi Logo" className="h-10 md:h-12 w-auto object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all" />
+              <img src="/logo.png" alt="RoundFi Logo" className="h-10 md:h-40 w-auto object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all" />
             </div>
             <p className="text-gray-500 max-w-sm leading-relaxed text-xs md:text-sm">
               O RoundFi é um protocolo de <span className="text-gray-400">Collaborative Finance (CoFi)</span> construído na Solana para redefinir a formação de capital.
