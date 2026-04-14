@@ -23,9 +23,10 @@ export default function Home() {
   // Estados do Leilão e Tempo
   const [bidAmount, setBidAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
-  const [daysUntilDue, setDaysUntilDue] = useState(7); // Começa faltando 7 dias (Amarelo)
+  const [daysUntilDue, setDaysUntilDue] = useState(7); // Começa faltando 7 dias
 
   const [realTotalPool, setRealTotalPool] = useState<number>(0);
+  const [realHighestBid, setRealHighestBid] = useState<number>(0);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [marketFilter, setMarketFilter] = useState("all");
@@ -54,16 +55,13 @@ export default function Home() {
         PROGRAM_ID
       );
 
-      // Adicionamos o "as any" aqui para o TypeScript parar de reclamar
-const groupData: any = await program.account.groupState.fetch(groupStatePDA);
-
-const pool = groupData.potAmount.toNumber();
-const highest = groupData.highestBidAmount.toNumber();
-
+      const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
+      
+      const pool = groupData.potAmount ? groupData.potAmount.toNumber() : 0;
+      const highest = groupData.highestBidAmount ? groupData.highestBidAmount.toNumber() : 0;
 
       setRealTotalPool(pool);
-      // Se você tiver o estado de highest bid criado:
-      // setRealHighestBid(highest); 
+      setRealHighestBid(highest); 
 
     } catch (error) {
       console.log("Cofre ainda não inicializado ou sem dados.");
@@ -130,6 +128,7 @@ const highest = groupData.highestBidAmount.toNumber();
 
       alert(`Seu lance secreto de ${bidAmount} USDC foi enviado para a urna do contrato!`);
       setBidAmount("");
+      fetchBlockchainData(); 
     } catch (error: any) {
       alert("Erro ao enviar lance secreto.");
     } finally {
@@ -142,7 +141,7 @@ const highest = groupData.highestBidAmount.toNumber();
     setTimeout(() => { setIsPaying(false); setInstallmentPaid(true); }, 1500);
   };
 
-  // Lógica de Cores do Semáforo
+  // Lógica de Cores do Semáforo (Agora aplicada SÓ no card)
   const isUrgent = daysUntilDue <= 3;
 
   if (!mounted) return null;
@@ -175,26 +174,9 @@ const highest = groupData.highestBidAmount.toNumber();
           </div>
         )}
 
-        {/* ALERTA DINÂMICO DE INADIMPLÊNCIA (AMARELO OU VERMELHO) */}
-        {isSigned && !installmentPaid && (
-          <div className={`px-4 py-3 rounded-xl mb-6 max-w-5xl w-full mx-auto flex justify-between items-center transition-colors duration-500 ${isUrgent ? 'bg-red-500/10 border border-red-500 text-red-400 animate-pulse' : 'bg-yellow-500/10 border border-yellow-500/50 text-yellow-500'}`}>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{isUrgent ? '🚨' : '⚠️'}</span>
-              <div>
-                <p className="font-bold text-sm">{isUrgent ? 'Atenção: Vencimento Iminente' : 'Lembrete de Mensalidade'}</p>
-                <p className={`text-xs ${isUrgent ? 'text-red-400/80' : 'text-yellow-500/80'}`}>A mensalidade do Grupo "Expansão Comercial" vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}.</p>
-              </div>
-            </div>
-            <button onClick={() => setActiveTab("dashboard")} className={`text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors ${isUrgent ? 'bg-red-500 hover:bg-red-600' : 'bg-yellow-600 hover:bg-yellow-700'}`}>
-              Pagar Agora
-            </button>
-          </div>
-        )}
-
         {/* CABEÇALHO */}
         <header className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-4 max-w-5xl w-full mx-auto gap-4">
           <div className="text-2xl font-bold cursor-pointer flex items-center gap-2" onClick={() => setActiveTab("dashboard")}>
-            {/* <img src="/logo.png" alt="RoundFi Logo" className="h-8 w-auto" /> */}
             Round<span className="text-[#00FFA3]">Fi</span>
           </div>
           
@@ -250,7 +232,7 @@ const highest = groupData.highestBidAmount.toNumber();
               {isSigned && (
                 <div className={`bg-[#1C2541] p-6 rounded-2xl border transition-all animate-in fade-in ${
                   installmentPaid ? 'border-[#00FFA3]/50 hover:border-[#00FFA3]' : 
-                  (isUrgent ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-yellow-500/30 hover:border-yellow-500/50')
+                  (isUrgent ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-gray-800 hover:border-gray-700')
                 }`}>
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex-1 w-full">
@@ -259,21 +241,32 @@ const highest = groupData.highestBidAmount.toNumber();
                         {installmentPaid ? (
                           <span className="bg-[#00FFA3]/20 text-[#00FFA3] text-xs px-3 py-1 rounded-full font-bold border border-[#00FFA3]/30">✓ Em Dia</span>
                         ) : (
-                          <span className={`${isUrgent ? 'bg-red-500/20 text-red-500 border-red-500/30' : 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'} text-xs px-3 py-1 rounded-full font-bold border`}>
+                          <span className={`${isUrgent ? 'bg-red-500/20 text-red-500 border-red-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'} text-xs px-3 py-1 rounded-full font-bold border`}>
                             Pendente
                           </span>
                         )}
                       </div>
                       
                       <div className="w-full bg-gray-800 rounded-full h-2 mb-2 mt-1">
-                        <div className={`h-2 rounded-full transition-all duration-1000 ${installmentPaid ? 'bg-[#00FFA3] w-[5%]' : (isUrgent ? 'bg-red-500 w-[0%]' : 'bg-yellow-500 w-[0%]')}`}></div>
+                        <div className={`h-2 rounded-full transition-all duration-1000 ${installmentPaid ? 'bg-[#00FFA3] w-[5%]' : (isUrgent ? 'bg-red-500 w-[0%]' : 'bg-gray-500 w-[0%]')}`}></div>
                       </div>
                       <p className="text-gray-400 text-xs mb-4">{installmentPaid ? '1/20 Parcelas Pagas' : '0/20 Parcelas Pagas'}</p>
+
+                      {/* ALERTA CONTEXTUAL: Só aparece com <= 3 dias dentro do card */}
+                      {!installmentPaid && isUrgent && (
+                        <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-center gap-3 animate-pulse max-w-sm">
+                          <span className="text-xl">🚨</span>
+                          <div>
+                            <p className="text-red-400 font-bold text-sm">Vencimento Iminente</p>
+                            <p className="text-red-400/80 text-xs">Sua parcela vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}.</p>
+                          </div>
+                        </div>
+                      )}
 
                       {!installmentPaid ? (
                         <button 
                           onClick={handlePayInstallment} disabled={isPaying}
-                          className={`${isUrgent ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-yellow-500 hover:bg-yellow-600 text-black shadow-[0_0_10px_rgba(234,179,8,0.2)]'} text-white font-bold py-2 px-6 rounded-lg text-sm transition-all disabled:opacity-50 flex items-center gap-2`}
+                          className={`${isUrgent ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)] text-white' : 'bg-transparent border border-[#00FFA3] text-[#00FFA3] hover:bg-[#00FFA3] hover:text-[#0B132B]'} font-bold py-2 px-6 rounded-lg text-sm transition-all disabled:opacity-50 flex items-center gap-2`}
                         >
                           {isPaying ? "Processando..." : "Pagar Mensalidade (1,000 USDC)"}
                         </button>
@@ -284,7 +277,7 @@ const highest = groupData.highestBidAmount.toNumber();
 
                     <div className="text-left md:text-right w-full md:w-auto bg-gray-900/50 p-4 rounded-xl border border-gray-800">
                       <p className="text-sm text-gray-400 mb-1">Último Lance Vencedor</p>
-                      <p className="text-white font-bold text-xl">6,500 USDC</p>
+                      <p className="text-white font-bold text-xl">{isLoadingData ? "..." : realHighestBid} USDC</p>
                       <p className="text-xs text-gray-500 mt-1">Sorteio em 30 dias</p>
                     </div>
                   </div>
@@ -386,7 +379,6 @@ const highest = groupData.highestBidAmount.toNumber();
       {/* Header Landing */}
       <header className="flex justify-between items-center p-6 max-w-6xl w-full mx-auto z-10">
         <div className="text-2xl font-bold flex items-center gap-2">
-          {/* <img src="/logo.png" alt="RoundFi" className="h-8 w-auto" /> */}
           Round<span className="text-[#00FFA3]">Fi</span>
         </div>
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-400">
