@@ -382,7 +382,7 @@ export default function Home() {
       <header className="flex justify-between items-center p-8 max-w-7xl w-full mx-auto z-50">
         <div className="cursor-pointer transition-transform hover:scale-105" onClick={() => setActiveTab("dashboard")}>
           {/* Logo Maior aqui também */}
-          <img src="/logo.png" alt="RoundFi Logo" className="h-60 w-auto object-contain" />
+          <img src="/logo.png" alt="RoundFi Logo" className="h-40 npm run  w-auto object-contain" />
         </div>
         <nav className="hidden lg:flex gap-10 text-sm font-semibold text-gray-400 uppercase tracking-widest">
           <a href="#simulator" className="hover:text-white transition-colors">Simulador</a>
