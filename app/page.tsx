@@ -11,25 +11,30 @@ export default function Home() {
   const { connected, publicKey } = useWallet();
   const anchorWallet = useAnchorWallet(); 
   
-  const [yieldAmount, setYieldAmount] = useState(12.4582);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [yieldAmount, setYieldAmount] = useState(12.4582);
 
+  // Estados do App Real
   const [isSigned, setIsSigned] = useState(true); 
   const [installmentPaid, setInstallmentPaid] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [isProcessingTx, setIsProcessingTx] = useState(false); 
   
-  // Estados do Leilão e Tempo
   const [bidAmount, setBidAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
-  const [daysUntilDue, setDaysUntilDue] = useState(7); // Começa faltando 7 dias
+  const [daysUntilDue, setDaysUntilDue] = useState(7);
 
   const [realTotalPool, setRealTotalPool] = useState<number>(0);
   const [realHighestBid, setRealHighestBid] = useState<number>(0);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [marketFilter, setMarketFilter] = useState("all");
+
+  // Estados do SIMULADOR (Landing Page)
+  const [simAmount, setSimAmount] = useState(10000);
+  const [simMonths, setSimMonths] = useState(24);
+  const apy = 0.065; // 6.5%
 
   useEffect(() => {
     setMounted(true);
@@ -55,6 +60,7 @@ export default function Home() {
         PROGRAM_ID
       );
 
+      // Lendo os dados do contrato
       const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
       
       const pool = groupData.potAmount ? groupData.potAmount.toNumber() : 0;
@@ -141,13 +147,12 @@ export default function Home() {
     setTimeout(() => { setIsPaying(false); setInstallmentPaid(true); }, 1500);
   };
 
-  // Lógica de Cores do Semáforo (Agora aplicada SÓ no card)
   const isUrgent = daysUntilDue <= 3;
 
   if (!mounted) return null;
 
   // ==========================================
-  // TELA DO USUÁRIO CONECTADO (APP)
+  // TELA DO USUÁRIO CONECTADO (APP DASHBOARD)
   // ==========================================
   if (connected) {
     return (
@@ -162,10 +167,10 @@ export default function Home() {
                 <button onClick={() => setShowScoreModal(false)} className="text-gray-400 hover:text-white text-xl">✕</button>
               </div>
               <div className="space-y-4 text-gray-300">
-                <p>O <strong>RoundFi Score</strong> mede o seu comprometimento com o protocolo e destrava benefícios exclusivos.</p>
+                <p>O <strong>RoundFi Score</strong> mede o seu comprometimento on-chain. Esqueça o Serasa, aqui sua reputação é construída pelas suas atitudes.</p>
                 <ul className="space-y-3 bg-gray-900/50 p-4 rounded-xl border border-gray-800">
                   <li className="flex justify-between"><span className="text-[#8A2BE2] font-bold">Nível 1 (Iniciante)</span> <span>Taxa Padrão</span></li>
-                  <li className="flex justify-between"><span className="text-[#00FFA3] font-bold">Nível 2 (Confiável)</span> <span>Yield turbinado +2%</span></li>
+                  <li className="flex justify-between"><span className="text-[#00FFA3] font-bold">Nível 2 (Confiável)</span> <span>Yield turbinado +1.5%</span></li>
                   <li className="flex justify-between"><span className="text-yellow-400 font-bold">Nível 3 (Mestre)</span> <span>Acesso a Grupos VIP</span></li>
                 </ul>
                 <p className="text-sm text-gray-400 pt-2 border-t border-gray-800">💡 <em>Pague suas mensalidades em dia e mantenha seu colateral travado para subir de nível automaticamente.</em></p>
@@ -174,10 +179,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* CABEÇALHO */}
+        {/* CABEÇALHO DO DASHBOARD */}
         <header className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-4 max-w-5xl w-full mx-auto gap-4">
-          <div className="text-2xl font-bold cursor-pointer flex items-center gap-2" onClick={() => setActiveTab("dashboard")}>
-            Round<span className="text-[#00FFA3]">Fi</span>
+          <div className="cursor-pointer transition-transform hover:scale-105" onClick={() => setActiveTab("dashboard")}>
+            {/* Logo Aumentada e sem texto extra */}
+            <img src="/logo.png" alt="RoundFi Logo" className="h-12 w-auto object-contain" />
           </div>
           
           <nav className="flex gap-6 bg-[#1C2541] px-6 py-2 rounded-full border border-gray-800">
@@ -221,7 +227,6 @@ export default function Home() {
             <div className="mt-12">
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-xl font-bold">Meus Grupos Ativos</h3>
-                {/* BOTÃO ESCONDIDO PARA TESTE: Simula os dias passando */}
                 {!installmentPaid && (
                   <button onClick={() => setDaysUntilDue(prev => prev > 1 ? prev - 1 : 7)} className="text-[10px] bg-gray-800 text-gray-400 px-2 py-1 rounded hover:bg-gray-700">
                     ⚙️ Simular Tempo (-1 dia)
@@ -252,7 +257,6 @@ export default function Home() {
                       </div>
                       <p className="text-gray-400 text-xs mb-4">{installmentPaid ? '1/20 Parcelas Pagas' : '0/20 Parcelas Pagas'}</p>
 
-                      {/* ALERTA CONTEXTUAL: Só aparece com <= 3 dias dentro do card */}
                       {!installmentPaid && isUrgent && (
                         <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-center gap-3 animate-pulse max-w-sm">
                           <span className="text-xl">🚨</span>
@@ -282,7 +286,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* LEILÃO SECRETO (ENVELOPE FECHADO) */}
                   <div className="mt-6 pt-6 border-t border-gray-800">
                     <p className="text-sm text-gray-400 mb-2">Urna de Lances (Envelope Fechado - Seu lance é secreto)</p>
                     <div className="flex gap-3">
@@ -314,14 +317,13 @@ export default function Home() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
               <div>
                 <h2 className="text-3xl font-extrabold mb-2">Grupos Abertos</h2>
-                <p className="text-gray-400 text-lg">Escolha um consórcio para fazer Stake de acordo com seu perfil.</p>
+                <p className="text-gray-400 text-lg">Escolha um consórcio (Pool) para participar de acordo com seu perfil.</p>
               </div>
               <button onClick={handleInitGroup} disabled={isProcessingTx} className="text-xs text-gray-600 hover:text-[#00FFA3] transition-colors bg-transparent border border-gray-800 px-3 py-1 rounded">
                 ⚙️ Setup Admin
               </button>
             </div>
 
-            {/* FILTROS DO MERCADO */}
             <div className="flex flex-wrap gap-3 mb-6">
               {['all', 'small', 'medium', 'large'].map((filter) => (
                 <button 
@@ -342,7 +344,6 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* CARD DE GRUPO */}
               <div className="bg-[#1C2541] p-6 rounded-2xl border border-gray-800 hover:border-[#00FFA3] transition-all group shadow-lg shadow-[#00FFA3]/5">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-xl font-bold">Expansão Comercial</h3>
@@ -350,7 +351,7 @@ export default function Home() {
                 </div>
                 <div className="space-y-3 mb-8">
                   <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span className="text-sm">Carta:</span> <span className="text-white font-bold">20,000 USDC</span></p>
-                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span className="text-sm">Stake Inicial:</span> <span className="text-[#00FFA3] font-bold">100 USDC</span></p>
+                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span className="text-sm">Parcela:</span> <span className="text-[#00FFA3] font-bold">1,000 USDC</span></p>
                   <p className="flex justify-between text-gray-400"><span className="text-sm">Prazo:</span> <span className="text-white">20 meses</span></p>
                 </div>
                 <button 
@@ -369,69 +370,209 @@ export default function Home() {
   }
 
   // ==========================================
-  // TELA INICIAL (LANDING PAGE PROFISSIONAL)
+  // TELA LANDING PAGE (VITRINE DEFI)
   // ==========================================
   return (
-    <main className="flex min-h-screen flex-col bg-[#0B132B] text-white font-sans relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-[-10%] left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] bg-[#00FFA3] blur-[150px] opacity-10 pointer-events-none"></div>
+    <main className="flex min-h-screen flex-col bg-[#0B132B] text-white font-sans overflow-x-hidden">
+      {/* Glow de Fundo Estilo DeFi */}
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#8A2BE2] opacity-10 blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-[#00FFA3] opacity-10 blur-[120px] pointer-events-none"></div>
 
-      {/* Header Landing */}
-      <header className="flex justify-between items-center p-6 max-w-6xl w-full mx-auto z-10">
-        <div className="text-2xl font-bold flex items-center gap-2">
-          Round<span className="text-[#00FFA3]">Fi</span>
+      {/* HEADER LANDING PAGE */}
+      <header className="flex justify-between items-center p-8 max-w-7xl w-full mx-auto z-50">
+        <div className="cursor-pointer transition-transform hover:scale-105" onClick={() => setActiveTab("dashboard")}>
+          {/* Logo Maior aqui também */}
+          <img src="/logo.png" alt="RoundFi Logo" className="h-60 w-auto object-contain" />
         </div>
-        <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-400">
-          <a href="#" className="hover:text-white transition-colors">Protocolo</a>
+        <nav className="hidden lg:flex gap-10 text-sm font-semibold text-gray-400 uppercase tracking-widest">
+          <a href="#simulator" className="hover:text-white transition-colors">Simulador</a>
+          <a href="#compare" className="hover:text-white transition-colors">Vantagens</a>
           <a href="#" className="hover:text-white transition-colors">Docs</a>
-          <a href="#" className="hover:text-white transition-colors">Auditoria</a>
+          <a href="#" className="hover:text-[#00FFA3] transition-colors text-gray-500">Auditoria</a>
         </nav>
-        <WalletMultiButton style={{ backgroundColor: "transparent", color: "#00FFA3", border: "1px solid #00FFA3", borderRadius: "8px", height: "40px" }} />
+        <WalletMultiButton style={{ backgroundColor: "#00FFA3", color: "#0B132B", borderRadius: "12px", fontWeight: "bold" }} />
       </header>
 
-      {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 mt-10">
-        <div className="inline-block bg-[#00FFA3]/10 border border-[#00FFA3]/30 text-[#00FFA3] px-4 py-1.5 rounded-full text-xs font-bold mb-8 uppercase tracking-widest">
-          Consórcio Descentralizado na Solana
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl leading-tight">
-          O seu colateral trabalhando. <br/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFA3] to-[#8A2BE2]">
-            O seu crédito expandindo.
+      {/* HERO SECTION */}
+      <section className="flex flex-col items-center justify-center pt-20 pb-32 px-6 text-center z-10">
+        <div className="inline-flex items-center gap-2 bg-[#00FFA3]/10 border border-[#00FFA3]/20 text-[#00FFA3] px-4 py-2 rounded-full text-xs font-bold mb-8 animate-bounce">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FFA3] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FFA3]"></span>
           </span>
+          Protocolo CoFi Live na Solana Devnet
+        </div>
+        <h1 className="text-5xl md:text-7xl font-black leading-none mb-8 max-w-4xl tracking-tight">
+          Colateral que rende. <br/>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFA3] via-[#8A2BE2] to-[#00FFA3] bg-[length:200%_auto] animate-gradient">Crédito que expande.</span>
         </h1>
-        <p className="text-lg md:text-xl text-gray-400 max-w-2xl mb-12">
-          Acesse capital sem liquidar seus ativos. Grupos de crédito justos, transparentes e impulsionados por Yield em DeFi.
+        <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mb-12 font-light leading-relaxed">
+          O primeiro protocolo de <span className="text-white font-bold">Collaborative Finance (CoFi)</span> da Solana. Elimine as taxas de administração e veja seu dinheiro crescer enquanto aguarda sua contemplação.
         </p>
-
-        <div className="hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(0,255,163,0.3)] rounded-full mb-16">
-          <WalletMultiButton style={{ backgroundColor: "#00FFA3", color: "#0B132B", fontWeight: "bold", borderRadius: "9999px", padding: "0 40px", height: "60px", fontSize: "1.125rem" }} />
+        <div className="flex flex-col sm:flex-row gap-4">
+           <WalletMultiButton style={{ height: "60px", padding: "0 40px", fontSize: "1.1rem", borderRadius: "16px" }} />
+           <a 
+             href="https://x.com/RoundFinanceSol" 
+             target="_blank" 
+             rel="noopener noreferrer" 
+             className="h-[60px] px-10 rounded-2xl border border-gray-700 font-bold flex items-center justify-center hover:bg-[#8A2BE2] hover:border-[#8A2BE2] hover:text-white transition-all gap-2"
+           >
+             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+             Siga nosso X
+           </a>
         </div>
 
-        {/* TVL Métrica Gignate */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl border-t border-gray-800 pt-12">
+        {/* METRICS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-5xl border-t border-gray-800 pt-12 mt-20">
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Total Value Locked</p>
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Total Value Locked</p>
             <p className="text-4xl font-bold">$1,245,800</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Grupos Ativos</p>
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Pooled Capital Groups</p>
             <p className="text-4xl font-bold">14</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Yield Médio (APY)</p>
-            <p className="text-4xl font-bold text-[#00FFA3]">8.5%</p>
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Base APY Estimado</p>
+            <p className="text-4xl font-bold text-[#00FFA3]">~ 6.5%</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Taxa do Protocolo</p>
+            <p className="text-4xl font-bold text-[#8A2BE2]">1.5%</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer Footer Profissional */}
-      <footer className="border-t border-gray-800/50 mt-auto py-8 text-center text-sm text-gray-500 z-10 flex flex-col md:flex-row justify-between items-center px-10 max-w-6xl w-full mx-auto">
-        <p>© 2026 RoundFi Protocol. Todos os direitos reservados.</p>
-        <div className="flex gap-4 mt-4 md:mt-0">
-          <a href="#" className="hover:text-white transition-colors">Contract Address</a>
-          <a href="#" className="hover:text-white transition-colors">GitHub</a>
-          <a href="#" className="hover:text-white transition-colors">Equipe</a>
+      {/* SECTION: SIMULADOR INTERATIVO */}
+      <section id="simulator" className="max-w-6xl w-full mx-auto px-6 py-24 border-t border-gray-900">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Simule seu <br/><span className="text-[#00FFA3]">Saldo Futuro</span></h2>
+            <p className="text-gray-400 text-lg mb-10">Diferente de um consórcio comum onde seu dinheiro é corroído pela inflação, no modelo <span className="text-white font-bold">CoFi (Collaborative Finance)</span> seu colateral cresce enquanto você espera ser contemplado.</p>
+            
+            <div className="space-y-8 bg-[#1C2541]/40 p-10 rounded-3xl border border-gray-800 backdrop-blur-xl">
+              <div>
+                <label className="text-sm text-gray-500 uppercase font-bold mb-4 block">Valor da Carta de Crédito (USDC)</label>
+                <input 
+                  type="range" min="1000" max="100000" step="1000" 
+                  value={simAmount} onChange={(e) => setSimAmount(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#00FFA3]"
+                />
+                <div className="flex justify-between mt-4">
+                  <span className="text-2xl font-bold">${simAmount.toLocaleString()}</span>
+                  <span className="text-gray-500">Máx: $100k</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-500 uppercase font-bold mb-4 block">Prazo do Grupo (Meses)</label>
+                <input 
+                  type="range" min="6" max="60" step="6" 
+                  value={simMonths} onChange={(e) => setSimMonths(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#8A2BE2]"
+                />
+                <div className="flex justify-between mt-4">
+                  <span className="text-2xl font-bold">{simMonths} Meses</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-[#1C2541] to-[#0B132B] p-1 rounded-[40px] shadow-2xl shadow-[#00FFA3]/5">
+            <div className="bg-[#0B132B] rounded-[38px] p-12 text-center">
+               <p className="text-gray-500 uppercase tracking-widest text-xs font-bold mb-4">Saldo Final Estimado na Contemplação</p>
+               <h3 className="text-6xl font-black text-white mb-2">
+                 ${(simAmount + (simAmount * apy * (simMonths/12))).toLocaleString(undefined, {maximumFractionDigits: 2})}
+               </h3>
+               <p className="text-[#00FFA3] font-bold text-xl mb-10">
+                 + ${(simAmount * apy * (simMonths/12)).toLocaleString(undefined, {maximumFractionDigits: 2})} gerados em Yield
+               </p>
+
+               <div className="flex items-end justify-center gap-3 h-32 mb-10">
+                  <div className="w-12 bg-gray-800 rounded-t-lg h-[40%]"></div>
+                  <div className="w-12 bg-gray-700 rounded-t-lg h-[50%]"></div>
+                  <div className="w-12 bg-gray-600 rounded-t-lg h-[65%]"></div>
+                  <div className="w-12 bg-[#00FFA3] rounded-t-lg h-[100%] shadow-[0_0_20px_rgba(0,255,163,0.5)]"></div>
+               </div>
+               <button className="w-full bg-[#00FFA3] text-[#0B132B] py-5 rounded-2xl font-black text-lg hover:scale-105 transition-all">CONECTAR CARTEIRA</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: COMPARISON TABLE (A REVOLUÇÃO DO COFI) */}
+      <section id="compare" className="max-w-6xl w-full mx-auto px-6 py-24">
+        <h2 className="text-4xl font-bold text-center mb-4">A Evolução do <span className="text-[#8A2BE2]">Crédito Comunitário</span></h2>
+        <p className="text-gray-400 text-center max-w-2xl mx-auto mb-16">Substituímos administradoras burocráticas por Smart Contracts e algoritmos de reputação comportamental.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-gray-800 rounded-[32px] overflow-hidden bg-[#1C2541]/20 backdrop-blur-md">
+           <div className="p-10 border-b md:border-b-0 md:border-r border-gray-800">
+              <p className="text-gray-500 font-bold mb-6 uppercase text-xs tracking-widest">Comparativo</p>
+              <ul className="space-y-8 text-gray-400 font-medium text-sm">
+                <li className="flex items-center h-8">Taxa de Administração</li>
+                <li className="flex items-center h-8">Rendimento do Fundo</li>
+                <li className="flex items-center h-8">Análise de Crédito</li>
+                <li className="flex items-center h-8">Velocidade de Liquidez</li>
+                <li className="flex items-center h-8">Estrutura e Custódia</li>
+              </ul>
+           </div>
+           
+           <div className="p-10 border-b md:border-b-0 md:border-r border-gray-800 bg-gray-900/40">
+              <p className="text-gray-400 font-bold mb-6 uppercase text-xs tracking-widest">Consórcio Tradicional</p>
+              <ul className="space-y-8 text-gray-300 font-medium text-sm">
+                <li className="flex items-center h-8 text-red-400">15% a 25% (Embutida)</li>
+                <li className="flex items-center h-8 text-red-400">0% (Corroído pela inflação)</li>
+                <li className="flex items-center h-8">Serasa, Burocracia, Comprovantes</li>
+                <li className="flex items-center h-8">30 a 60 dias após sorteio</li>
+                <li className="flex items-center h-8">Centralizada (Lucro do Banco)</li>
+              </ul>
+           </div>
+           
+           <div className="p-10 bg-gradient-to-b from-[#00FFA3]/10 to-transparent relative border-t-4 border-[#00FFA3]">
+              <div className="absolute top-4 right-6 bg-[#00FFA3] text-[#0B132B] text-[10px] font-black px-2 py-1 rounded tracking-widest">COFI</div>
+              <p className="text-[#00FFA3] font-bold mb-6 uppercase text-xs tracking-widest">RoundFi Protocol</p>
+              <ul className="space-y-8 text-white font-bold text-sm">
+                <li className="flex items-center h-8 text-white">~1.5% (Taxa de Protocolo Justa)</li>
+                <li className="flex items-center h-8 text-[#00FFA3]">~6.5% APY Base + Boosts</li>
+                <li className="flex items-center h-8">RoundFi Score (Comportamental On-chain)</li>
+                <li className="flex items-center h-8">Instantânea via Smart Contract</li>
+                <li className="flex items-center h-8">Decentralized Pooled Capital</li>
+              </ul>
+           </div>
+        </div>
+      </section>
+
+      {/* FOOTER PREMIUM */}
+      <footer className="mt-auto border-t border-gray-900 pt-20 pb-10 bg-black/20">
+        <div className="max-w-7xl w-full mx-auto px-10 grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+          <div className="col-span-1 md:col-span-2">
+            <div className="mb-6">
+              {/* Logo no Footer também! */}
+              <img src="/logo.png" alt="RoundFi Logo" className="h-12 w-auto object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all" />
+            </div>
+            <p className="text-gray-500 max-w-sm leading-relaxed">
+              O RoundFi é um protocolo de <span className="text-gray-400">Collaborative Finance (CoFi)</span> construído na Solana para redefinir a formação de capital em grupo através de liquidez descentralizada.
+            </p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-6">Protocolo</h4>
+            <ul className="text-gray-500 space-y-4 text-sm">
+              <li><a href="#" className="hover:text-white transition-colors">Group Savings</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Reputation Score</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Segurança & Auditoria</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-6">Comunidade</h4>
+            <ul className="text-gray-500 space-y-4 text-sm">
+              <li><a href="https://x.com/RoundFinanceSol" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter / X</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">GitHub</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="text-center text-gray-600 text-xs tracking-widest border-t border-gray-900 pt-10">
+          © 2026 ROUNDFI PROTOCOL. DECENTRALIZED POOLED CAPITAL. OPERANDO NA SOLANA DEVNET.
         </div>
       </footer>
     </main>
