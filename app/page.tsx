@@ -26,7 +26,6 @@ export default function Home() {
   const [daysUntilDue, setDaysUntilDue] = useState(7); // Começa faltando 7 dias (Amarelo)
 
   const [realTotalPool, setRealTotalPool] = useState<number>(0);
-  const [realHighestBid, setRealHighestBid] = useState<number>(0); // Adicionado para evitar erro
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [marketFilter, setMarketFilter] = useState("all");
@@ -55,19 +54,17 @@ export default function Home() {
         PROGRAM_ID
       );
 
-      // FORÇAMOS O TIPO AQUI DE FORMA ULTRA RÍGIDA PARA A VERCEL ACEITAR
-      const groupData: any = await program.account.groupState.fetch(groupStatePDA);
-      
-      if (groupData) {
-        // Usamos colchetes para garantir que o TS não reclame da propriedade
-        const poolValue = groupData['totalAmount'] ? groupData['totalAmount'].toNumber() : 
-                         (groupData['totalPool'] ? groupData['totalPool'].toNumber() : 0);
-                     
-        const highestValue = groupData['highestBid'] ? groupData['highestBid'].toNumber() : 0;
+      // Adicionamos o "as any" aqui para o TypeScript parar de reclamar
+      const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
 
-        setRealTotalPool(poolValue);
-        setRealHighestBid(highestValue);
-      }
+const pool = groupData.totalAmount ? groupData.totalAmount.toNumber() : 
+             (groupData.totalPool ? groupData.totalPool.toNumber() : 0);
+
+const highest = groupData.highestBid ? groupData.highestBid.toNumber() : 0;
+
+      setRealTotalPool(pool);
+      // Se você tiver o estado de highest bid criado:
+      // setRealHighestBid(highest); 
 
     } catch (error) {
       console.log("Cofre ainda não inicializado ou sem dados.");
@@ -134,7 +131,6 @@ export default function Home() {
 
       alert(`Seu lance secreto de ${bidAmount} USDC foi enviado para a urna do contrato!`);
       setBidAmount("");
-      fetchBlockchainData();
     } catch (error: any) {
       alert("Erro ao enviar lance secreto.");
     } finally {
@@ -199,6 +195,7 @@ export default function Home() {
         {/* CABEÇALHO */}
         <header className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-4 max-w-5xl w-full mx-auto gap-4">
           <div className="text-2xl font-bold cursor-pointer flex items-center gap-2" onClick={() => setActiveTab("dashboard")}>
+            {/* <img src="/logo.png" alt="RoundFi Logo" className="h-8 w-auto" /> */}
             Round<span className="text-[#00FFA3]">Fi</span>
           </div>
           
@@ -216,10 +213,10 @@ export default function Home() {
         {/* ABA: MEU PAINEL */}
         {activeTab === "dashboard" && (
           <div className="max-w-5xl w-full mx-auto space-y-8 animate-in fade-in duration-500">
-            <h2 className="text-3xl font-extrabold mb-2 text-white">Meu Painel</h2>
+            <h2 className="text-3xl font-extrabold mb-2">Meu Painel</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-[#1C2541] p-6 rounded-2xl border border-gray-800">
+              <div className="bg-[#1C2541] p-6 rounded-2xl border border-gray-800 transition-all">
                 <p className="text-gray-400 text-sm mb-1">Total Travado no Cofre</p>
                 <p className="text-3xl font-bold">{isLoadingData ? "..." : realTotalPool} <span className="text-sm font-normal text-gray-500">USDC</span></p>
               </div>
@@ -242,7 +239,8 @@ export default function Home() {
 
             <div className="mt-12">
               <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-xl font-bold text-white">Meus Grupos Ativos</h3>
+                <h3 className="text-xl font-bold">Meus Grupos Ativos</h3>
+                {/* BOTÃO ESCONDIDO PARA TESTE: Simula os dias passando */}
                 {!installmentPaid && (
                   <button onClick={() => setDaysUntilDue(prev => prev > 1 ? prev - 1 : 7)} className="text-[10px] bg-gray-800 text-gray-400 px-2 py-1 rounded hover:bg-gray-700">
                     ⚙️ Simular Tempo (-1 dia)
@@ -281,17 +279,18 @@ export default function Home() {
                           {isPaying ? "Processando..." : "Pagar Mensalidade (1,000 USDC)"}
                         </button>
                       ) : (
-                        <p className="text-sm text-[#00FFA3] border border-[#00FFA3]/30 inline-block px-4 py-2 rounded-lg bg-[#00FFA3]/10">✓ Mensalidade Paga</p>
+                        <p className="text-sm text-[#00FFA3] border border-[#00FFA3]/30 inline-block px-4 py-2 rounded-lg bg-[#00FFA3]/10">Mensalidade deste mês paga.</p>
                       )}
                     </div>
 
-                    <div className="text-left md:text-right w-full md:w-auto bg-gray-900/50 p-4 rounded-xl border border-gray-800 text-white">
+                    <div className="text-left md:text-right w-full md:w-auto bg-gray-900/50 p-4 rounded-xl border border-gray-800">
                       <p className="text-sm text-gray-400 mb-1">Último Lance Vencedor</p>
-                      <p className="text-white font-bold text-xl">{isLoadingData ? "..." : realHighestBid} USDC</p>
+                      <p className="text-white font-bold text-xl">6,500 USDC</p>
                       <p className="text-xs text-gray-500 mt-1">Sorteio em 30 dias</p>
                     </div>
                   </div>
 
+                  {/* LEILÃO SECRETO (ENVELOPE FECHADO) */}
                   <div className="mt-6 pt-6 border-t border-gray-800">
                     <p className="text-sm text-gray-400 mb-2">Urna de Lances (Envelope Fechado - Seu lance é secreto)</p>
                     <div className="flex gap-3">
@@ -320,8 +319,11 @@ export default function Home() {
         {/* ABA: EXPLORAR COM FILTROS */}
         {activeTab === "explorer" && (
           <div className="max-w-5xl w-full mx-auto space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-end mb-8">
-              <h2 className="text-3xl font-extrabold text-white">Grupos Abertos</h2>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+              <div>
+                <h2 className="text-3xl font-extrabold mb-2">Grupos Abertos</h2>
+                <p className="text-gray-400 text-lg">Escolha um consórcio para fazer Stake de acordo com seu perfil.</p>
+              </div>
               <button onClick={handleInitGroup} disabled={isProcessingTx} className="text-xs text-gray-600 hover:text-[#00FFA3] transition-colors bg-transparent border border-gray-800 px-3 py-1 rounded">
                 ⚙️ Setup Admin
               </button>
@@ -339,12 +341,15 @@ export default function Home() {
                     : 'bg-transparent text-gray-400 border-gray-700 hover:border-gray-500'
                   }`}
                 >
-                  {filter.toUpperCase()}
+                  {filter === 'all' && 'Todos os Grupos'}
+                  {filter === 'small' && 'Até 10k USDC'}
+                  {filter === 'medium' && '10k a 50k USDC'}
+                  {filter === 'large' && 'Acima de 50k USDC'}
                 </button>
               ))}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* CARD DE GRUPO */}
               <div className="bg-[#1C2541] p-6 rounded-2xl border border-gray-800 hover:border-[#00FFA3] transition-all group shadow-lg shadow-[#00FFA3]/5">
                 <div className="flex justify-between items-start mb-4">
@@ -352,16 +357,16 @@ export default function Home() {
                   <span className="bg-[#00FFA3]/20 text-[#00FFA3] text-xs px-2 py-1 rounded font-bold">Vagas: 18/20</span>
                 </div>
                 <div className="space-y-3 mb-8">
-                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span>Carta:</span> <span className="text-white font-bold">20,000 USDC</span></p>
-                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span>Stake:</span> <span className="text-[#00FFA3] font-bold">100 USDC</span></p>
-                  <p className="flex justify-between text-gray-400"><span>Prazo:</span> <span className="text-white">20 meses</span></p>
+                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span className="text-sm">Carta:</span> <span className="text-white font-bold">20,000 USDC</span></p>
+                  <p className="flex justify-between text-gray-400 border-b border-gray-800 pb-2"><span className="text-sm">Stake Inicial:</span> <span className="text-[#00FFA3] font-bold">100 USDC</span></p>
+                  <p className="flex justify-between text-gray-400"><span className="text-sm">Prazo:</span> <span className="text-white">20 meses</span></p>
                 </div>
                 <button 
                   onClick={handleParticipate} 
                   disabled={isProcessingTx}
                   className="w-full bg-[#00FFA3] text-[#0B132B] py-3 rounded-xl font-bold hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
                 >
-                  {isProcessingTx ? "Aprovando..." : "Assinar Contrato & Entrar"}
+                  {isProcessingTx ? "Aprovando Transação..." : "Assinar Contrato & Entrar"}
                 </button>
               </div>
             </div>
@@ -382,6 +387,7 @@ export default function Home() {
       {/* Header Landing */}
       <header className="flex justify-between items-center p-6 max-w-6xl w-full mx-auto z-10">
         <div className="text-2xl font-bold flex items-center gap-2">
+          {/* <img src="/logo.png" alt="RoundFi" className="h-8 w-auto" /> */}
           Round<span className="text-[#00FFA3]">Fi</span>
         </div>
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-400">
@@ -414,15 +420,15 @@ export default function Home() {
         {/* TVL Métrica Gignate */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl border-t border-gray-800 pt-12">
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2 text-white">Total Value Locked</p>
+            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Total Value Locked</p>
             <p className="text-4xl font-bold">$1,245,800</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2 text-white">Grupos Ativos</p>
+            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Grupos Ativos</p>
             <p className="text-4xl font-bold">14</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2 text-white text-white">Yield Médio (APY)</p>
+            <p className="text-gray-500 text-sm font-medium uppercase tracking-wider mb-2">Yield Médio (APY)</p>
             <p className="text-4xl font-bold text-[#00FFA3]">8.5%</p>
           </div>
         </div>
@@ -432,7 +438,7 @@ export default function Home() {
       <footer className="border-t border-gray-800/50 mt-auto py-8 text-center text-sm text-gray-500 z-10 flex flex-col md:flex-row justify-between items-center px-10 max-w-6xl w-full mx-auto">
         <p>© 2026 RoundFi Protocol. Todos os direitos reservados.</p>
         <div className="flex gap-4 mt-4 md:mt-0">
-          <a href="#" className="hover:text-white transition-colors">Contrato</a>
+          <a href="#" className="hover:text-white transition-colors">Contract Address</a>
           <a href="#" className="hover:text-white transition-colors">GitHub</a>
           <a href="#" className="hover:text-white transition-colors">Equipe</a>
         </div>
