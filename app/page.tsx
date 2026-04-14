@@ -55,10 +55,9 @@ export default function Home() {
       );
 
       // Adicionamos o "as any" aqui para o TypeScript parar de reclamar
-      const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
+      const groupData: any = await program.account.groupState.fetch(groupStatePDA);
 
-const pool = groupData.totalAmount ? groupData.totalAmount.toNumber() : 
-             (groupData.totalPool ? groupData.totalPool.toNumber() : 0);
+const pool = groupData.potAmount.toNumber();
 
 const highest = groupData.highestBid ? groupData.highestBid.toNumber() : 0;
 
