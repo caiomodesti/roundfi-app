@@ -182,7 +182,8 @@ export default function Home() {
         {/* CABEÇALHO DO DASHBOARD */}
         <header className="flex justify-between items-center mb-10 border-b border-gray-800 pb-4 max-w-5xl w-full mx-auto gap-2">
           <div className="cursor-pointer transition-transform hover:scale-105 shrink-0" onClick={() => setActiveTab("dashboard")}>
-            <img src="/logo.png" alt="RoundFi Logo" className="h-10 md:h-16 w-auto object-contain" />
+            {/* AQUI ESTÁ SEU H-40 RESTAURADO NO DESKTOP, mantendo h-20 no mobile */}
+            <img src="/logo.png" alt="RoundFi Logo" className="h-20 md:h-40 w-auto object-contain" />
           </div>
           
           <nav className="hidden md:flex gap-6 bg-[#1C2541] px-6 py-2 rounded-full border border-gray-800">
@@ -278,7 +279,7 @@ export default function Home() {
                       {!installmentPaid ? (
                         <button 
                           onClick={handlePayInstallment} disabled={isPaying}
-                          className={`${isUrgent ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)] text-white' : 'bg-transparent border border-[#00FFA3] text-[#00FFA3] hover:bg-[#00FFA3] hover:text-[#0B132B]'} font-bold py-2 px-6 rounded-lg text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 w-full md:w-auto`}
+                          className={`${isUrgent ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)] text-white' : 'bg-transparent border border-[#00FFA3] text-[#00FFA3] hover:bg-[#00FFA3] hover:text-[#0B132B]'} font-bold py-2 md:py-3 px-6 w-full md:w-auto rounded-lg text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
                         >
                           {isPaying ? "Processando..." : "Pagar Mensalidade (1,000 USDC)"}
                         </button>
@@ -321,7 +322,7 @@ export default function Home() {
 
         {/* ABA: EXPLORAR COM FILTROS */}
         {activeTab === "explorer" && (
-          <div className="max-w-5xl w-full mx-auto space-y-8 animate-in fade-in duration-500">
+          <div className="p-4 md:p-6 max-w-5xl w-full mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
               <div>
                 <h2 className="text-2xl md:text-3xl font-extrabold mb-2">Grupos Abertos</h2>
@@ -391,7 +392,8 @@ export default function Home() {
       {/* HEADER LANDING PAGE */}
       <header className="flex justify-between items-center p-4 md:p-8 max-w-7xl w-full mx-auto z-50 gap-2">
         <div className="cursor-pointer transition-transform hover:scale-105 shrink-0" onClick={() => setActiveTab("dashboard")}>
-          <img src="/logo.png" alt="RoundFi Logo" className="h-10 md:h-16 w-auto object-contain" />
+          {/* AQUI ESTÁ SEU H-40 RESTAURADO NO DESKTOP, mantendo h-20 no mobile */}
+          <img src="/logo.png" alt="RoundFi Logo" className="h-20 md:h-40 w-auto object-contain" />
         </div>
         <nav className="hidden lg:flex gap-10 text-sm font-semibold text-gray-400 uppercase tracking-widest">
           <a href="#simulator" className="hover:text-white transition-colors">Simulador</a>
@@ -560,7 +562,8 @@ export default function Home() {
         <div className="max-w-7xl w-full mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-10 md:mb-20 text-center md:text-left">
           <div className="col-span-1 md:col-span-2 flex flex-col items-center md:items-start">
             <div className="mb-4 md:mb-6">
-              <img src="/logo.png" alt="RoundFi Logo" className="h-10 md:h-40 w-auto object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all" />
+              {/* Logo no Footer também está com h-24 no desktop para ficar maior */}
+              <img src="/logo.png" alt="RoundFi Logo" className="h-16 md:h-24 w-auto object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all" />
             </div>
             <p className="text-gray-500 max-w-sm leading-relaxed text-xs md:text-sm">
               O RoundFi é um protocolo de <span className="text-gray-400">Collaborative Finance (CoFi)</span> construído na Solana para redefinir a formação de capital.
