@@ -54,16 +54,17 @@ export default function Home() {
         PROGRAM_ID
       );
 
-      // @ts-ignore - Força o TypeScript da Vercel a ignorar o erro de tipagem
+      // Adicionamos o "as any" e o ts-ignore para a Vercel parar de reclamar
       const groupData: any = await program.account.groupState.fetch(groupStatePDA);
       
+      // Agora ele aceita o toNumber() sem chiar
       // @ts-ignore
-      const pool = groupData?.totalAmount ? groupData.totalAmount.toNumber() : 
+      const pool = groupData.totalAmount ? groupData.totalAmount.toNumber() : 
                    // @ts-ignore
-                   (groupData?.totalPool ? groupData.totalPool.toNumber() : 0);
+                   (groupData.totalPool ? groupData.totalPool.toNumber() : 0);
                    
       // @ts-ignore
-      const highest = groupData?.highestBid ? groupData.highestBid.toNumber() : 0;
+      const highest = groupData.highestBid ? groupData.highestBid.toNumber() : 0;
 
       setRealTotalPool(pool);
       // Se você tiver o estado de highest bid criado:
