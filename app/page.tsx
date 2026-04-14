@@ -55,14 +55,11 @@ export default function Home() {
       );
 
       // Adicionamos o "as any" aqui para o TypeScript parar de reclamar
-      const groupData = await program.account.groupState.fetch(groupStatePDA) as any;
-      
-      // CORREÇÃO: Nomes corretos do IDL + ts-ignore para blindar a Vercel
-      // @ts-ignore
-      const pool = groupData.potAmount ? groupData.potAmount.toNumber() : 0;
-                   
-      // @ts-ignore
-      const highest = groupData.highestBidAmount ? groupData.highestBidAmount.toNumber() : 0;
+const groupData: any = await program.account.groupState.fetch(groupStatePDA);
+
+const pool = groupData.potAmount.toNumber();
+const highest = groupData.highestBidAmount.toNumber();
+
 
       setRealTotalPool(pool);
       // Se você tiver o estado de highest bid criado:
